@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Outfit', 'Inter', sans-serif;
+  --color-brand-purple: #4f1271;
+  --color-brand-dark: #070708;
+  --color-brand-slate: #111113;
+}
+
+@layer base {
+  body {
+    background-color: #070708;
+    color: #f3f4f6;
+    overflow-x: hidden;
+  }
+}
+
+/* Yatay kaydırma çubuğunu şık şekilde gizleme */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphism ve Yarı Saydam Cam Paneller */
+.glass-panel {
+  background: rgba(17, 17, 19, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* HBO Max Tarzı Büyük Sıralama Rütbe Rozetleri */
+.hbo-number-badge {
+  font-size: 8rem;
+  font-weight: 900;
+  line-height: 0.8;
+  -webkit-text-stroke: 2px rgba(147, 51, 234, 0.5); /* Purple neon outline */
+  color: #070708;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Mikro Giriş Animasyonları */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* 3D Kredi Kartı Döndürme Efektleri */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Fütüristik Logo Giriş Efektleri */
+@keyframes logoIntro {
+  0% {
+    transform: scale(0.85);
+    filter: blur(10px) brightness(0.5);
+    letter-spacing: 0.8em;
+    opacity: 0;
+  }
+  50% {
+    filter: blur(0) brightness(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    letter-spacing: 0.2em;
+    opacity: 1;
+  }
+}
+
+@keyframes neonGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), 0 0 30px rgba(168, 85, 247, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.6), 0 0 50px rgba(168, 85, 247, 0.4);
+  }
+}
+
+.animate-logo-intro {
+  animation: logoIntro 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-neon-glow {
+  animation: neonGlow 2s infinite ease-in-out;
+}
+
