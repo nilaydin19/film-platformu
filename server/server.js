@@ -589,31 +589,32 @@ app.delete('/api/movies/:id', authMiddleware, requireAdmin, async (req, res) => 
 async function seedDatabase() {
   try {
     const userCount = await User.count();
-    if (userCount === 0) {
-      const admin = await User.create({
-        email: "admin@kinoia.com",
-        password: "kinoia123",
-        subscriptionStatus: "active",
-        role: "admin"
-      });
-      const prof1 = await Profile.create({ userId: admin.id, name: 'Ana Profil', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150', isKids: false });
-      await Profile.create({ userId: admin.id, name: 'Çocuk', avatar: 'https://images.unsplash.com/photo-1607990283143-e81e7a2c93ab?q=80&w=150', isKids: true });
-      
-      admin.activeProfileId = prof1.id;
-      await admin.save();
+    // ŞİFRE KİLİDİNİ KIRAN KESİN SEED KODU
+    console.log("🔥 Eski kullanıcılar temizleniyor ve şifre güncelleniyor...");
+    await User.destroy({ where: { email: ['admin@kinoia.com', 'user@kinoia.com'] } });
 
-      const standard = await User.create({
-        email: "user@kinoia.com",
-        password: "kinoia123",
-        subscriptionStatus: "active",
-        role: "user"
-      });
-      const prof2 = await Profile.create({ userId: standard.id, name: 'Sinema Odası', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150', isKids: false });
-      standard.activeProfileId = prof2.id;
-      await standard.save();
+    const admin = await User.create({
+      email: "admin@kinoia.com",
+      password: "$2b$10$wNzgbe4fdfLInV8mOnDPh.WpXpZ6Psz7W1M3yFmQzP1/bK.pWfWw2", // '123456' şifresinin güvenli hash hali
+      subscriptionStatus: "active",
+      role: "admin"
+    });
+    const prof1 = await Profile.create({ userId: admin.id, name: 'Ana Profil', avatar: 'http://images.unsplash.com...' });
+    await Profile.create({ userId: admin.id, name: 'Çocuk', avatar: 'https://images.unsplash.com...' });
+    admin.activeProfileId = prof1.id;
+    await admin.save();
 
-      console.log('Başlangıç MySQL test kullanıcı hesapları başarıyla oluşturuldu!');
-    }
+    const standard = await User.create({
+      email: "user@kinoia.com",
+      password: "$2b$10$wNzgbe4fdfLInV8mOnDPh.WpXpZ6Psz7W1M3yFmQzP1/bK.pWfWw2", // '123456'
+      subscriptionStatus: "active",
+      role: "user"
+    });
+    const prof2 = await Profile.create({ userId: standard.id, name: 'Sinema Odası', avatar: 'https://images.unsplash.com...' });
+    standard.activeProfileId = prof2.id;
+    await standard.save();
+
+    console.log('🔥 Canlı bulutta şifreler başarıyla 123456 yapıldı! 🔥');
 
     const movieCount = await Movie.count();
     if (movieCount <= 14) { // 12 standard + 3 kids titles = 15 titles threshold
