@@ -23,7 +23,7 @@ export default function HybridPlayer({ movie, onBack }) {
     setSubmittingReport(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/issues', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/issues', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export default function HybridPlayer({ movie, onBack }) {
   const updateProgress = async (progress, total) => {
     if (!total || hasError) return;
     try {
-      await fetch(`http://localhost:5000/api/movies/${movie._id || movie.id}/progress`, {
+      await fetch(`https://film-platformu-server.vercel.app/api/movies/${movie._id || movie.id}/progress`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

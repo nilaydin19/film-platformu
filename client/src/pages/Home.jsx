@@ -56,7 +56,7 @@ export default function Home({ onMovieSelect }) {
 
   const fetchMovies = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/movies', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/movies', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
@@ -72,7 +72,7 @@ export default function Home({ onMovieSelect }) {
 
   const fetchCuratorPlaylists = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/playlists/all', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/playlists/all', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {

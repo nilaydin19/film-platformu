@@ -47,7 +47,7 @@ export default function AdminDashboard() {
   const fetchIssues = async () => {
     try {
       setIssuesLoading(true);
-      const response = await fetch('http://localhost:5000/api/issues', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/issues', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
 
   const handleToggleIssueStatus = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/issues/${id}/status`, {
+      const response = await fetch(`https://film-platformu-server.vercel.app/api/issues/${id}/status`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
   const handleDeleteIssue = async (id) => {
     if (!window.confirm('Bu şikayeti silmek istediğinizden emin misiniz?')) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/issues/${id}`, {
+      const response = await fetch(`https://film-platformu-server.vercel.app/api/issues/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/admin/stats', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/admin/stats', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
 
   const fetchMovies = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/movies', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/movies', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
     };
 
     const targetMovieId = editId;
-    const url = targetMovieId ? `http://localhost:5000/api/movies/${targetMovieId}` : 'http://localhost:5000/api/movies';
+    const url = targetMovieId ? `https://film-platformu-server.vercel.app/api/movies/${targetMovieId}` : 'https://film-platformu-server.vercel.app/api/movies';
     const method = targetMovieId ? 'PUT' : 'POST';
 
     try {
@@ -237,7 +237,7 @@ export default function AdminDashboard() {
   const handleDelete = async (id) => {
     if (!window.confirm('Bu içeriği kalıcı olarak silmek istediğinizden emin misiniz?')) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/movies/${id}`, {
+      const response = await fetch(`https://film-platformu-server.vercel.app/api/movies/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });

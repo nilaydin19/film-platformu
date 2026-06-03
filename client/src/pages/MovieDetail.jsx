@@ -57,7 +57,7 @@ export default function MovieDetail({ movie, onBack }) {
 
   const fetchPlaylists = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/playlists', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/playlists', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
@@ -71,7 +71,7 @@ export default function MovieDetail({ movie, onBack }) {
 
   const fetchSimilarMovies = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/movies', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/movies', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (response.ok) {
@@ -119,7 +119,7 @@ export default function MovieDetail({ movie, onBack }) {
   const toggleWatchlist = async () => {
     try {
       const mId = movie._id || movie.id;
-      const response = await fetch(`http://localhost:5000/api/movies/${mId}/watchlist`, {
+      const response = await fetch(`https://film-platformu-server.vercel.app/api/movies/${mId}/watchlist`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export default function MovieDetail({ movie, onBack }) {
       const mId = movie._id || movie.id;
       if (isInPlaylist) {
         // Kaldır
-        const response = await fetch(`http://localhost:5000/api/playlists/${playlistId}/movies/${mId}`, {
+        const response = await fetch(`https://film-platformu-server.vercel.app/api/playlists/${playlistId}/movies/${mId}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -152,7 +152,7 @@ export default function MovieDetail({ movie, onBack }) {
         }
       } else {
         // Ekle
-        const response = await fetch(`http://localhost:5000/api/playlists/${playlistId}/movies`, {
+        const response = await fetch(`https://film-platformu-server.vercel.app/api/playlists/${playlistId}/movies`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ export default function MovieDetail({ movie, onBack }) {
       const token = localStorage.getItem('token');
       const mId = movie._id || movie.id;
       
-      const response = await fetch('http://localhost:5000/api/playlists', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/playlists', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ export default function MovieDetail({ movie, onBack }) {
       if (response.ok) {
         const newPL = await response.json();
         // Oluşturulan listeye hemen bu filmi ekle
-        const addResponse = await fetch(`http://localhost:5000/api/playlists/${newPL.id || newPL._id}/movies`, {
+        const addResponse = await fetch(`https://film-platformu-server.vercel.app/api/playlists/${newPL.id || newPL._id}/movies`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

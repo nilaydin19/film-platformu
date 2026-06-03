@@ -30,7 +30,7 @@ export default function App() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/movies', {
+      const response = await fetch('https://film-platformu-server.vercel.app/api/movies', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
