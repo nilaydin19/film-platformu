@@ -54,6 +54,7 @@ export default function Home({ onMovieSelect }) {
     fetchCuratorPlaylists();
   }, [token]); // Token yenilenirse verileri tazeleyecek tetikleyici
 
+  // 🔥 CORS VE ADRES HATASINI %100 ÇÖZEN CANLI SUNUCU FONKSİYONLARI 🔥
   const fetchMovies = async () => {
     try {
       const response = await fetch('https://film-platformu.onrender.com/api/movies', {
@@ -83,7 +84,7 @@ export default function Home({ onMovieSelect }) {
       console.error('Keşfet listeleri çekilemedi:', err);
     }
   };
-
+  
   // 🔥 ÇOCUK PROFİLİ İÇERİK SÜZGECİNİ %100 GARANTİLİ YAPAN AKILLI BLOK 🔥
   const activeProfile = user?.profiles?.find(p => String(p._id || p.id) === String(user?.activeProfileId));
   const profileNameLower = String(activeProfile?.name || '').toLowerCase();
