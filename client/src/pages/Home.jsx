@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Hero from '../components/Hero';
 import MovieSlider from '../components/MovieSlider';
 import { Search, Flame, User, Play, X, Film, ArrowRight, Globe, ChevronDown } from 'lucide-react';
-import { MovieCard } from '../components/MovieCard';
+import MovieCard from '../components/MovieCard'; // 🔥 SÜSLÜ PARANTEZ HATASI GİDERİLDİ 🔥
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function Home({ onMovieSelect }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth(); // Global token entegre edildi
   const { language, setLanguage, t } = useLanguage();
   
   const [movies, setMovies] = useState([]);
@@ -52,16 +52,16 @@ export default function Home({ onMovieSelect }) {
   useEffect(() => {
     fetchMovies();
     fetchCuratorPlaylists();
-  }, []);
+  }, [token]); // Token yenilenirse verileri tazeleyecek tetikleyici
 
   const fetchMovies = async () => {
     try {
       const response = await fetch('https://film-platformu.onrender.com/api/movies', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${token || localStorage.getItem('token')}` }
       });
       if (response.ok) {
         const data = await response.json();
-        setMovies(data);
+        setMovies(data || []);
       }
     } catch (err) {
       console.error('İçerikler çekilemedi:', err);
@@ -73,36 +73,30 @@ export default function Home({ onMovieSelect }) {
   const fetchCuratorPlaylists = async () => {
     try {
       const response = await fetch('https://film-platformu.onrender.com/api/playlists/all', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { 'Authorization': `Bearer ${token || localStorage.getItem('token')}` }
       });
       if (response.ok) {
         const data = await response.json();
-        setCuratorPlaylists(data);
+        setCuratorPlaylists(data || []);
       }
     } catch (err) {
       console.error('Keşfet listeleri çekilemedi:', err);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070708] text-purple-400">
-        <div className="w-8 h-8 border-t-2 border-purple-500 rounded-full animate-spin animate-pulse" />
-      </div>
-    );
-  }
+  // 🔥 ÇOCUK PROFİLİ İÇERİK SÜZGECİNİ %100 GARANTİLİ YAPAN AKILLI BLOK 🔥
+  const activeProfile = user?.profiles?.find(p => String(p._id || p.id) === String(user?.activeProfileId));
+  const profileNameLower = String(activeProfile?.name || '').toLowerCase();
+  const isKidsActive = activeProfile?.isKids === true || 
+                       activeProfile?.isKids === 1 || 
+                       String(activeProfile?.isKids) === 'true' ||
+                       profileNameLower.includes('çocuk') || 
+                       profileNameLower.includes('cocuk') || 
+                       profileNameLower.includes('kids');
 
-  // Aktif profil ve çocuk profili filtresi (Tüm ihtimalleri kapsayacak şekilde %100 güvenli kontrol)
-  const activeProfile = user?.profiles.find(p => String(p._id || p.id) === String(user.activeProfileId));
-  const isKidsActive = activeProfile?.isKids === true || activeProfile?.isKids === 1 || String(activeProfile?.isKids) === 'true';
-
-  // 🔥 ÇOCUK PROFİLİ İÇERİK FİLTRESİNİ %100 GARANTİLİ YAPAN AKILLI BLOK 🔥
   const allowedMovies = isKidsActive
     ? movies.filter(m => {
-        // Film çocuk filmi olarak işaretlenmiş mi kontrolü
         const isKidsTagged = m.isKids === true || m.isKids === 1 || String(m.isKids) === 'true';
-        
-        // Türlerin içinde çocuk kategorisi var mı kontrolü (Büyük/küçük harf duyarsız)
         const hasKidsGenre = m.genres?.some(g => {
           const genreLower = String(g).toLowerCase();
           return genreLower.includes('animasyon') || 
@@ -111,15 +105,20 @@ export default function Home({ onMovieSelect }) {
                  genreLower.includes('aile') || 
                  genreLower.includes('kids');
         });
-        
         return isKidsTagged || hasKidsGenre;
       })
     : movies;
-    
-  // Çocuk profili için küratör çalma listelerindeki yetişkin filmlerini ayıkla ve boşalan listeleri tamamen gizle
+
   const allowedPlaylists = isKidsActive
     ? curatorPlaylists.map(pl => {
-        const kidsMovies = pl.movies?.filter(m => m.isKids === true || m.isKids === 1 || String(m.isKids) === 'true' || m.genres.includes('Animasyon') || m.genres.includes('Çizgi Film') || m.genres.includes('Çocuk')) || [];
+        const kidsMovies = pl.movies?.filter(m => {
+          const isKidsTagged = m.isKids === true || m.isKids === 1 || String(m.isKids) === 'true';
+          const hasKidsGenre = m.genres?.some(g => {
+            const genreLower = String(g).toLowerCase();
+            return genreLower.includes('animasyon') || genreLower.includes('çizgi') || genreLower.includes('çocuk') || genreLower.includes('aile') || genreLower.includes('kids');
+          });
+          return isKidsTagged || hasKidsGenre;
+        }) || [];
         return { ...pl, movies: kidsMovies };
       }).filter(pl => pl.movies.length > 0)
     : curatorPlaylists;
@@ -139,7 +138,7 @@ export default function Home({ onMovieSelect }) {
   const isFiltering = searchQuery !== '' || selectedGenre !== 'Tümü' || selectedLanguageFilter !== 'Tümü';
   const heroMovie = allowedMovies.length > 0 ? allowedMovies[0] : null;
 
-  // Netflix "İzlemeye Devam Et" İlerleme listesi
+  // Netflix "İzlemeye Devam Et" listesi
   const continueWatchingList = activeProfile?.playbackHistory
     ?.map(hist => {
       const mId = hist.movie;
@@ -148,8 +147,16 @@ export default function Home({ onMovieSelect }) {
     })
     .filter(Boolean) || [];
 
-  // MUBI Günün Filmi Kürasyonu (IMDb Puanı en yüksek olanı yakala)
+  // MUBI Günün Filmi Kürasyonu
   const movieOfTheDay = allowedMovies.find(m => m.imdbRating > 9.0) || allowedMovies[0];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#070708] text-purple-400">
+        <div className="w-8 h-8 border-t-2 border-purple-500 rounded-full animate-spin animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 pb-20 animate-fade-in">
@@ -216,7 +223,7 @@ export default function Home({ onMovieSelect }) {
         </div>
       </div>
 
-      {/* AKORDİYON SES / ALTYAZI DİL FİLTRELEME PANELİ */}
+      {/* AKORDİYON PANELİ */}
       <div className={`transition-all duration-300 overflow-hidden bg-[#111113]/25 rounded-2xl border border-white/5 shadow-md flex flex-col md:flex-row gap-4 items-start md:items-center justify-between ${
         isLangAccordionOpen ? 'max-h-24 p-4 opacity-100 mb-6' : 'max-h-0 p-0 border-none opacity-0 scale-95 pointer-events-none'
       }`}>
@@ -258,11 +265,10 @@ export default function Home({ onMovieSelect }) {
         </div>
       ) : (
         <>
-          {/* GÜNÜN KINOIA KÜRATÖR SEÇİMİ */}
+          {/* GÜNÜN SEÇİMİ */}
           {movieOfTheDay && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-gradient-to-r from-[#1b0c30]/80 via-[#111113]/90 to-[#070708] border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[100px] pointer-events-none rounded-full" />
-              
               <div className="lg:col-span-2 space-y-4 z-10 flex flex-col justify-center">
                 <div className="flex items-center gap-2 text-xs text-purple-400 font-extrabold uppercase tracking-widest">
                   <Flame className="w-4 h-4 text-purple-400 animate-pulse" /> {t('curator_selections')}
@@ -280,13 +286,12 @@ export default function Home({ onMovieSelect }) {
                 </p>
                 <button 
                   onClick={() => onMovieSelect(movieOfTheDay)} 
-                  className="flex items-center gap-2 bg-white text-black hover:bg-purple-600 hover:text-white font-extrabold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider w-fit cursor-pointer transition-all duration-300 shadow-md shadow-white/5"
+                  className="flex items-center gap-2 bg-white text-black hover:bg-purple-600 hover:text-white font-extrabold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider w-fit cursor-pointer transition-all duration-300 shadow-md"
                 >
                   <Film className="w-4 h-4 fill-current" />
                   {t('examine_and_play')}
                 </button>
               </div>
-              
               <div className="aspect-video lg:aspect-auto lg:h-[240px] rounded-2xl overflow-hidden border border-white/10 relative shadow-2xl">
                 <img src={movieOfTheDay.thumbnail} alt="" className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-[2s]" />
               </div>
@@ -302,7 +307,7 @@ export default function Home({ onMovieSelect }) {
                   const percent = Math.min(100, Math.floor((movie.progress / movie.duration) * 100)) || 0;
                   return (
                     <div key={movie._id || movie.id} onClick={() => onMovieSelect(movie)} className="flex-shrink-0 w-[150px] md:w-[185px] cursor-pointer group">
-                      <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border border-white/5 shadow-lg shadow-black/40 group-hover:border-purple-500/50 transition-all">
+                      <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border border-white/5 shadow-lg group-hover:border-purple-500/50 transition-all">
                         <img src={movie.thumbnail} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                         <div className="absolute inset-x-0 bottom-0 bg-black/80 p-2.5 space-y-1">
                           <div className="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
@@ -327,7 +332,7 @@ export default function Home({ onMovieSelect }) {
             <Hero movie={heroMovie} onSelect={onMovieSelect} />
           )}
 
-          {/* NETFLIX OVERLAPPING RÜTBELİ TOP 10 ŞERİDİ */}
+          {/* WEEKLY TOP 10 ŞERİDİ */}
           {allowedMovies.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-white border-l-4 border-purple-500 pl-3">{t('weekly_top10')}</h2>
@@ -338,12 +343,9 @@ export default function Home({ onMovieSelect }) {
                     className="flex-shrink-0 relative flex items-end justify-start cursor-pointer group w-[180px] h-[220px] md:h-[250px] select-none overflow-visible" 
                     onClick={() => onMovieSelect(movie)}
                   >
-                    {/* Dev Sayı */}
-                    <span className="absolute left-[-10px] bottom-[-20px] hbo-number-badge select-none z-0 leading-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] font-black text-[9rem] md:text-[11rem] transition-all group-hover:scale-105 duration-300">
+                    <span className="absolute left-[-10px] bottom-[-20px] hbo-number-badge font-black text-[9rem] md:text-[11rem] transition-all group-hover:scale-105 duration-300 select-none z-0 leading-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)]">
                       {index + 1}
                     </span>
-                    
-                    {/* Afiş */}
                     <div className="relative z-10 ml-16 md:ml-20 w-[110px] md:w-[130px] aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 group-hover:border-purple-500 shadow-2xl group-hover:scale-105 transition-all duration-300">
                       <img src={movie.thumbnail} alt="" className="w-full h-full object-cover" />
                     </div>
@@ -353,7 +355,7 @@ export default function Home({ onMovieSelect }) {
             </div>
           )}
 
-          {/* KİŞİSEL KÜRATÖR SİNEMA ODALARI */}
+          {/* KÜRATÖR SİNEMA ODALARI */}
           {allowedPlaylists.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 border-l-4 border-purple-500 pl-3">
@@ -366,54 +368,36 @@ export default function Home({ onMovieSelect }) {
               <div className="flex gap-6 overflow-x-auto scrollbar-hide py-2 scroll-smooth">
                 {allowedPlaylists.map((pl) => (
                   <div 
-                    key={pl.id} 
+                    key={pl._id || pl.id} 
                     onClick={() => setSelectedPlaylist(pl)}
                     className="flex-shrink-0 w-[280px] p-4 rounded-2xl border border-white/5 bg-[#111113]/55 hover:bg-[#111113]/90 hover:border-purple-500/30 transition-all duration-300 group cursor-pointer shadow-lg flex flex-col justify-between space-y-3"
                   >
-                    {/* 2x2 Film Kolajı */}
                     <div className="grid grid-cols-2 gap-1 w-full aspect-video rounded-xl overflow-hidden bg-black/40 border border-white/5 relative shadow-inner">
                       {pl.movies && pl.movies.length > 0 ? (
                         pl.movies.slice(0, 4).map((m, mIdx) => (
-                          <img 
-                            key={mIdx} 
-                            src={m.thumbnail} 
-                            alt="" 
-                            className="w-full h-full object-cover" 
-                          />
+                          <img key={mIdx} src={m.thumbnail} alt="" className="w-full h-full object-cover" />
                         ))
                       ) : (
                         <div className="col-span-2 flex items-center justify-center text-xs text-gray-600 italic font-medium">
                           {language === 'tr' ? 'Liste henüz boş' : language === 'en' ? 'List is empty' : language === 'ru' ? 'Список пуст' : language === 'de' ? 'Liste ist leer' : 'Liste vide'}
                         </div>
                       )}
-                      
-                      {/* Kart Rozeti */}
                       <span className="absolute bottom-2 right-2 bg-purple-600 text-white font-black text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wider shadow-lg">
                         {pl.movies?.length || 0} {language === 'tr' ? 'İÇERİK' : language === 'en' ? 'TITLES' : language === 'ru' ? 'ВИДЕО' : language === 'de' ? 'INHALTE' : 'VIDÉOS'}
                       </span>
                     </div>
- 
-                    {/* Küratör Metadata */}
+
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <img 
-                          src={pl.creatorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150'} 
-                          alt="" 
-                          className="w-5 h-5 rounded-full object-cover border border-purple-500/40" 
-                        />
-                        <span className="text-[10px] font-black uppercase text-purple-400 tracking-widest">
-                          {pl.creatorName || 'Kinoia Küratörü'}
-                        </span>
+                        <img src={pl.creatorAvatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150'} alt="" className="w-5 h-5 rounded-full object-cover border border-purple-500/40" />
+                        <span className="text-[10px] font-black uppercase text-purple-400 tracking-widest">{pl.creatorName || 'Kinoia Küratörü'}</span>
                       </div>
-                      
-                      <h3 className="text-sm font-black text-gray-100 truncate group-hover:text-purple-400 transition-colors">
-                        {pl.title}
-                      </h3>
+                      <h3 className="text-sm font-black text-gray-100 truncate group-hover:text-purple-400 transition-colors">{pl.title}</h3>
                       <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed font-medium">
                         {pl.description || (language === 'tr' ? 'Bu çalma listesi için açıklama girilmemiş.' : 'No description available for this playlist.')}
                       </p>
                     </div>
- 
+
                     <div className="flex justify-between items-center text-[10px] text-purple-400 font-bold border-t border-white/5 pt-2.5">
                       <span className="flex items-center gap-1">{t('room_inspect')}</span>
                       <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
@@ -424,20 +408,14 @@ export default function Home({ onMovieSelect }) {
             </div>
           )}
 
-          {/* Küratör Playlists İnceleme Detay Modalı */}
+          {/* DETAY MODALI */}
           {selectedPlaylist && (
             <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
               <div className="max-w-4xl w-full max-h-[85vh] rounded-3xl border border-white/10 bg-[#111113]/95 backdrop-blur-2xl p-6 md:p-8 shadow-2xl flex flex-col space-y-6 overflow-hidden">
-                
-                {/* Modal Header */}
                 <div className="flex justify-between items-start border-b border-white/5 pb-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <img 
-                        src={selectedPlaylist.creatorAvatar} 
-                        alt="" 
-                        className="w-6 h-6 rounded-full border border-purple-500" 
-                      />
+                      <img src={selectedPlaylist.creatorAvatar} alt="" className="w-6 h-6 rounded-full border border-purple-500" />
                       <span className="text-xs font-black uppercase text-purple-400 tracking-wider">
                         {selectedPlaylist.creatorName} {language === 'tr' ? 'Odasındasın' : language === 'en' ? 'Room' : language === 'ru' ? 'Комната' : language === 'de' ? 'Raum' : 'Salle'}
                       </span>
@@ -445,23 +423,16 @@ export default function Home({ onMovieSelect }) {
                     <h3 className="text-2xl font-black text-white">{selectedPlaylist.title}</h3>
                     <p className="text-xs text-gray-400">{selectedPlaylist.description}</p>
                   </div>
-                  <button 
-                    onClick={() => setSelectedPlaylist(null)}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer"
-                  >
+                  <button onClick={() => setSelectedPlaylist(null)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {/* Modal Body */}
                 <div className="flex-1 overflow-y-auto scrollbar-hide py-2">
                   {selectedPlaylist.movies && selectedPlaylist.movies.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                       {selectedPlaylist.movies.map((movie) => (
-                        <div key={movie._id || movie.id} onClick={() => {
-                          setSelectedPlaylist(null);
-                          onMovieSelect(movie);
-                        }}>
+                        <div key={movie._id || movie.id} onClick={() => { setSelectedPlaylist(null); onMovieSelect(movie); }}>
                           <MovieCard movie={movie} />
                         </div>
                       ))}
@@ -473,21 +444,16 @@ export default function Home({ onMovieSelect }) {
                   )}
                 </div>
 
-                {/* Modal Footer */}
                 <div className="flex justify-end pt-2 border-t border-white/5">
-                  <button 
-                    onClick={() => setSelectedPlaylist(null)}
-                    className="bg-purple-600 hover:bg-purple-500 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-pointer"
-                  >
+                  <button onClick={() => setSelectedPlaylist(null)} className="bg-purple-600 hover:bg-purple-500 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-pointer">
                     {t('close')}
                   </button>
                 </div>
-
               </div>
             </div>
           )}
 
-          {/* Standart Kategoriler */}
+          {/* STANDART SLIDER KATEGORİSİ */}
           <div className="space-y-12">
             {allowedMovies.length > 0 && (
               <MovieSlider 
@@ -499,7 +465,6 @@ export default function Home({ onMovieSelect }) {
           </div>
         </>
       )}
-
     </div>
   );
 }
