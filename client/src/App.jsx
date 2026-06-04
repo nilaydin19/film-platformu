@@ -30,7 +30,8 @@ export default function App() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('https://film-platformu-server.vercel.app/api/movies', {
+      // 🔥 DOĞRU CANLI BACKEND ADRESİNE BAĞLANDIK (onrender.com) 🔥
+      const response = await fetch('https://film-platformu.onrender.com/api/movies', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -69,7 +70,7 @@ export default function App() {
   const activeProfile = user?.profiles.find(p => String(p._id || p.id) === String(user.activeProfileId));
   const isKidsActive = activeProfile?.isKids === true || activeProfile?.isKids === 1 || String(activeProfile?.isKids) === 'true';
   
-  // Çocuk Profili İçerik Süzgeci (Tüm ihtimalleri kapsayacak şekilde güvenli filtreleme)
+  // Çocuk Profili İçerik Süzgeci
   const allowedContent = isKidsActive
     ? allContent.filter(m => m.isKids === true || m.isKids === 1 || String(m.isKids) === 'true' || m.genres.includes('Animasyon') || m.genres.includes('Çizgi Film') || m.genres.includes('Çocuk'))
     : allContent;
@@ -166,16 +167,14 @@ export default function App() {
                 handleSelectMovie(nextMovie);
               } else {
                 setSelectedMovie(null);
-                fetchContent(); // Raporlama sonrası watchlist veya profili tazelemek için çekim yap
+                fetchContent();
               }
             }} 
           />
         ) : (
           <>
-            {/* 1. ANA SAYFA */}
             {activeTab === 'home' && <Home onMovieSelect={handleSelectMovie} />}
 
-            {/* 2. SADECE FİLMLER SAYFASI */}
             {activeTab === 'movies' && (
               <div className="space-y-8 pb-20 animate-fade-in">
                 <div>
@@ -212,7 +211,6 @@ export default function App() {
               </div>
             )}
 
-            {/* 3. SADECE DİZİLER SAYFASI */}
             {activeTab === 'series' && (
               <div className="space-y-8 pb-20 animate-fade-in">
                 <div>
@@ -246,7 +244,6 @@ export default function App() {
               </div>
             )}
 
-            {/* 4. İZLEME LİSTEM (KÜRATÖR ODALARI) SAYFASI */}
             {activeTab === 'mylist' && (
               <div className="space-y-8 pb-20 animate-fade-in">
                 <div>
@@ -267,7 +264,6 @@ export default function App() {
               </div>
             )}
 
-            {/* 5. ADMIN PANELİ */}
             {activeTab === 'admin' && user?.role === 'admin' && <AdminDashboard />}
           </>
         )}
@@ -275,7 +271,6 @@ export default function App() {
 
       {/* KÖŞEDEKİ HIZLI AKORDİYON DİL SEÇİM PENCERESİ */}
       <div className="fixed bottom-20 md:bottom-8 right-6 z-50 flex flex-col items-end">
-        {/* Dikey Akordiyon Panel */}
         <div className={`transition-all duration-300 overflow-hidden bg-[#111113]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl mb-2 flex flex-col w-32 ${
           isFloatingLangOpen ? 'max-h-32 opacity-100 p-2 scale-100' : 'max-h-0 opacity-0 p-0 scale-95 pointer-events-none'
         }`}>
@@ -299,7 +294,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* Hamburger/Globe Tetikleyici Buton */}
         <button
           onClick={() => setIsFloatingLangOpen(!isFloatingLangOpen)}
           className={`p-3.5 rounded-2xl border transition-all duration-300 shadow-lg cursor-pointer flex items-center justify-center ${
@@ -312,7 +306,6 @@ export default function App() {
           <Menu className="w-5 h-5" />
         </button>
       </div>
-
     </div>
   );
 }
