@@ -32,7 +32,7 @@ app.use(cors({
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'kinoia_super_secret_premium_key_2026';
+const JWT_SECRET = 'kinoia_super_secret_premium_key_2026';
 
 // 🔥 KİLİT KIRICI SEED ROTASI 🔥
 app.get('/api/auth/force-seed', async (req, res) => {
