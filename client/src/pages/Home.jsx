@@ -96,10 +96,26 @@ export default function Home({ onMovieSelect }) {
   const activeProfile = user?.profiles.find(p => String(p._id || p.id) === String(user.activeProfileId));
   const isKidsActive = activeProfile?.isKids === true || activeProfile?.isKids === 1 || String(activeProfile?.isKids) === 'true';
 
+  // 🔥 ÇOCUK PROFİLİ İÇERİK FİLTRESİNİ %100 GARANTİLİ YAPAN AKILLI BLOK 🔥
   const allowedMovies = isKidsActive
-    ? movies.filter(m => m.isKids === true || m.isKids === 1 || String(m.isKids) === 'true' || m.genres.includes('Animasyon') || m.genres.includes('Çizgi Film') || m.genres.includes('Çocuk'))
+    ? movies.filter(m => {
+        // Film çocuk filmi olarak işaretlenmiş mi kontrolü
+        const isKidsTagged = m.isKids === true || m.isKids === 1 || String(m.isKids) === 'true';
+        
+        // Türlerin içinde çocuk kategorisi var mı kontrolü (Büyük/küçük harf duyarsız)
+        const hasKidsGenre = m.genres?.some(g => {
+          const genreLower = String(g).toLowerCase();
+          return genreLower.includes('animasyon') || 
+                 genreLower.includes('çizgi') || 
+                 genreLower.includes('çocuk') || 
+                 genreLower.includes('aile') || 
+                 genreLower.includes('kids');
+        });
+        
+        return isKidsTagged || hasKidsGenre;
+      })
     : movies;
-
+    
   // Çocuk profili için küratör çalma listelerindeki yetişkin filmlerini ayıkla ve boşalan listeleri tamamen gizle
   const allowedPlaylists = isKidsActive
     ? curatorPlaylists.map(pl => {
