@@ -34,23 +34,28 @@ app.use(express.json());
 // CANLI ŞİFRE SIFIRLAMA GARANTİ TETİGİ
 app.get('/api/auth/force-seed', async (req, res) => {
   try {
+    // Bcrypt kütüphanesini hocanın yukarda nasıl dahil ettiğine bakalım. 
+    // Eğer hata verirse diye garantili bir şekilde require ediyoruz:
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash('123456', 10);
+
     const adminUser = await User.findOne({ where: { email: 'admin@kinoia.com' } });
     
     if (adminUser) {
-      adminUser.password = "$2b$10$wNzgbe4fdfLInV8mOnDPh.WpXpZ6Psz7W1M3yFmQzP1/bK.pWfWw2"; 
+      adminUser.password = hashedPassword; 
       await adminUser.save();
-      res.send("🔥 CANLI SIFRE BASARIYLA 123456 YAPILDI CANO! GIRISE KOS! 🔥");
+      res.send("🔥 KILIT KIRILDI: CANLI SIFRE BCRYPT ILE 123456 YAPILDI! 🔥");
     } else {
       await User.create({
         email: "admin@kinoia.com",
-        password: "$2b$10$wNzgbe4fdfLInV8mOnDPh.WpXpZ6Psz7W1M3yFmQzP1/bK.pWfWw2",
+        password: hashedPassword,
         subscriptionStatus: "active",
         role: "admin"
       });
-      res.send("🔥 ADMIN YOKTU, SIFIRDAN 123456 SIFRESIYLE OLUSTURULDU! 🔥");
+      res.send("🔥 KILIT KIRILDI: ADMIN SIFIRDAN BCRYPT LI Olarak OLUŞTURULDU! 🔥");
     }
   } catch (err) {
-    res.status(500).send("Veritabani hatasi: " + err.message);
+    res.status(500).send("Kilit kırma hatası: " + err.message);
   }
 });
 
