@@ -10,12 +10,17 @@ export default function ProfileSelector({ onProfileSelected }) {
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileIsKids, setNewProfileIsKids] = useState(false);
 
+  // 🔥 PROFİL DEĞİŞTİĞİNDE VERİLERİ ANINDA TAZELEYEN GÜVENLİ FONKSİYON 🔥
   const handleSwitch = async (profileId) => {
     try {
       await switchProfile(profileId);
+      if (typeof fetchUserInfo === 'function') {
+        await fetchUserInfo();
+      }
       onProfileSelected();
     } catch (err) {
-      console.error(err);
+      console.error('Profil geçişi yenilenirken hata:', err);
+      onProfileSelected();
     }
   };
 
@@ -36,25 +41,14 @@ export default function ProfileSelector({ onProfileSelected }) {
         setNewProfileName('');
         setNewProfileIsKids(false);
         setShowAddForm(false);
-        // Yeni profil eklenince listeyi anında güncellemesi için kullanıcı verilerini tazeliyoruz
-        await fetchUserInfo();
+        if (typeof fetchUserInfo === 'function') {
+          await fetchUserInfo();
+        }
       } else {
         console.error('Profil eklenemedi, sunucu hatası.');
       }
     } catch (err) {
       console.error('Profil eklenirken hata oluştu:', err);
-    }
-  };
-        
-      if (response.ok) {
-        setNewProfileName('');
-        setNewProfileIsKids(false);
-        setShowAddForm(false);
-        // Sayfa yenileme yerine kullanıcıyı dinamik olarak tazeleyelim
-        await fetchUserInfo();
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -63,7 +57,7 @@ export default function ProfileSelector({ onProfileSelected }) {
       <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-10 tracking-tight">{t('who_is_watching')}</h1>
       
       <div className="flex flex-wrap justify-center gap-8 mb-10">
-        {user?.profiles.map((profile) => (
+        {user?.profiles?.map((profile) => (
           <div 
             key={profile._id || profile.id}
             onClick={() => handleSwitch(profile._id || profile.id)}
@@ -71,11 +65,11 @@ export default function ProfileSelector({ onProfileSelected }) {
           >
             <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border-2 border-transparent group-hover:border-purple-500 transition-all duration-300 shadow-lg relative">
               <img 
-  src={profile.avatar} 
-  alt={profile.name} 
-  onError={(e) => { e.target.src = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(profile.name); }}
-  className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform" 
-/>
+                src={profile.avatar} 
+                alt={profile.name} 
+                onError={(e) => { e.target.src = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(profile.name); }}
+                className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform" 
+              />
               {String(user.activeProfileId) === String(profile._id || profile.id) && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <Check className="w-8 h-8 text-purple-400" />
@@ -91,7 +85,7 @@ export default function ProfileSelector({ onProfileSelected }) {
           </div>
         ))}
 
-        {user?.profiles.length < 4 && (
+        {user?.profiles?.length < 4 && (
           <div 
             onClick={() => setShowAddForm(true)}
             className="flex flex-col items-center cursor-pointer group"
