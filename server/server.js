@@ -31,6 +31,15 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
+// CANLI ŞİFRE SIFIRLAMA GARANTİ TETİGİ
+app.get('/api/auth/force-seed', async (req, res) => {
+  try {
+    await seedDatabase();
+    res.send("🔥 Sifreler Canlida Basariyla 123456 Yapildi Cano! 🔥");
+  } catch (err) {
+    res.status(500).send("Hata: " + err.message);
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'kinoia_super_secret_premium_key_2026';
