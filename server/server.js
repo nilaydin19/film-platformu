@@ -65,48 +65,52 @@ app.get('/api/auth/force-seed', async (req, res) => {
 });
 
 // 🔥 HEM ADMIN HEM USER GİRİŞİNİ KESİN OLARAK ÇALIŞTIRAN BAYPAS ROTASI 🔥
-app.post('/api/auth/login', async (req, res) => {
+// 🔥 HEM ADMIN HEM USER VERİTABANI KİLİTLERİNİ EZEN GÜNCEL KOD 🔥
+app.get('/api/auth/force-seed', async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    // 1. ADMİN İÇİN ÖZEL GEÇİT
-    if (email === 'admin@kinoia.com' && password === '123456') {
-      let user = await User.findOne({ where: { email: 'admin@kinoia.com' } });
-      if (!user) {
-        user = await User.create({ email: "admin@kinoia.com", password: await bcrypt.hash('123456', 10), subscriptionStatus: "active", role: "admin" });
-        const prof = await Profile.create({ userId: user.id, name: 'Ana Profil', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150', isKids: false });
-        user.activeProfileId = prof.id; await user.save();
-      }
-      const payload = await getUserPayload(user);
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
-      return res.json({ token, user: payload });
+    const hashedPassword = await bcrypt.hash('123456', 10);
+    
+    // 1. Admin Kullanıcısını Güncelle veya Oluştur
+    const adminUser = await User.findOne({ where: { email: 'admin@kinoia.com' } });
+    if (adminUser) {
+      adminUser.password = hashedPassword; 
+      adminUser.role = 'admin';
+      adminUser.subscriptionStatus = 'active';
+      await adminUser.save();
+    } else {
+      const newAdmin = await User.create({
+        email: "admin@kinoia.com",
+        password: hashedPassword,
+        subscriptionStatus: "active",
+        role: "admin"
+      });
+      const prof = await Profile.create({ userId: newAdmin.id, name: 'Ana Profil', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150', isKids: false });
+      newAdmin.activeProfileId = prof.id;
+      await newAdmin.save();
     }
 
-    // 2. STANDART USER (user@kinoia.com) İÇİN ÖZEL GEÇİT
-    if (email === 'user@kinoia.com' && password === '123456') {
-      let user = await User.findOne({ where: { email: 'user@kinoia.com' } });
-      if (!user) {
-        user = await User.create({ email: "user@kinoia.com", password: await bcrypt.hash('123456', 10), subscriptionStatus: "active", role: "user" });
-        const prof = await Profile.create({ userId: user.id, name: 'Sinema Odası', avatar: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=150', isKids: false });
-        user.activeProfileId = prof.id; await user.save();
-      }
-      const payload = await getUserPayload(user);
-      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
-      return res.json({ token, user: payload });
+    // 2. Standart User Kullanıcısını Güncelle veya Oluştur
+    const normalUser = await User.findOne({ where: { email: 'user@kinoia.com' } });
+    if (normalUser) {
+      normalUser.password = hashedPassword;
+      normalUser.role = 'user';
+      normalUser.subscriptionStatus = 'active';
+      await normalUser.save();
+    } else {
+      const newUser = await User.create({
+        email: "user@kinoia.com",
+        password: hashedPassword,
+        subscriptionStatus: "active",
+        role: "user"
+      });
+      const profUser = await Profile.create({ userId: newUser.id, name: 'Sinema Odası', avatar: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=150', isKids: false });
+      newUser.activeProfileId = profUser.id;
+      await newUser.save();
     }
 
-    // 3. Diğer normal kayıt olan kullanıcılar için standart akış
-    const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(400).json({ message: 'Hatalı bilgiler.' });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Hatalı bilgiler.' });
-
-    const payload = await getUserPayload(user);
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: payload });
-  } catch (error) {
-    res.status(500).json({ message: 'Giriş yapılamadı: ' + error.message });
+    res.send("🔥 HEM ADMIN HEM USER SIFRELERI KESIN OLARAK YENİLENDİ! 🔥");
+  } catch (err) {
+    res.status(500).send("Hata: " + err.message);
   }
 });
 
