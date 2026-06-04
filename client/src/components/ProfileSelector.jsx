@@ -23,14 +23,15 @@ export default function ProfileSelector({ onProfileSelected }) {
     e.preventDefault();
     if (!newProfileName) return;
     try {
-      const response = await fetch('https://film-platformu-server.vercel.app/api/auth/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ name: newProfileName, isKids: newProfileIsKids })
-      });
+     const response = await fetch('https://film-platformu.onrender.com/api/auth/profile', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify({ name: newProfileName, isKids: newProfileIsKids })
+  });
+        
       if (response.ok) {
         setNewProfileName('');
         setNewProfileIsKids(false);
