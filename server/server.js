@@ -34,9 +34,8 @@ app.use(express.json());
 // CANLI ŞİFRE SIFIRLAMA GARANTİ TETİGİ
 app.get('/api/auth/force-seed', async (req, res) => {
   try {
-    // Bcrypt kütüphanesini hocanın yukarda nasıl dahil ettiğine bakalım. 
-    // Eğer hata verirse diye garantili bir şekilde require ediyoruz:
-    const bcrypt = require('bcrypt');
+    // Hocanın projesinde kurulu olan gerçek kütüphaneyi çağırıyoruz
+    const bcrypt = require('bcryptjs');
     const hashedPassword = await bcrypt.hash('123456', 10);
 
     const adminUser = await User.findOne({ where: { email: 'admin@kinoia.com' } });
@@ -44,7 +43,7 @@ app.get('/api/auth/force-seed', async (req, res) => {
     if (adminUser) {
       adminUser.password = hashedPassword; 
       await adminUser.save();
-      res.send("🔥 KILIT KIRILDI: CANLI SIFRE BCRYPT ILE 123456 YAPILDI! 🔥");
+      res.send("🔥 KILIT KIRILDI: CANLI SIFRE BCRYPTJS ILE 123456 YAPILDI! 🔥");
     } else {
       await User.create({
         email: "admin@kinoia.com",
@@ -52,7 +51,7 @@ app.get('/api/auth/force-seed', async (req, res) => {
         subscriptionStatus: "active",
         role: "admin"
       });
-      res.send("🔥 KILIT KIRILDI: ADMIN SIFIRDAN BCRYPT LI Olarak OLUŞTURULDU! 🔥");
+      res.send("🔥 KILIT KIRILDI: ADMIN SIFIRDAN BCRYPTJS LI Olarak OLUSTURULDU! 🔥");
     }
   } catch (err) {
     res.status(500).send("Kilit kırma hatası: " + err.message);
