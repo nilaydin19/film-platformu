@@ -196,4 +196,35 @@ async function startServer() {
     app.listen(PORT, () => { console.log(`Kinoia API ${PORT} portunda yayında.`); });
   } catch (error) { console.error(error); }
 }
+// 🔥 MEVCUT KODU BOZMADAN Sadece EKSİK ROTALARI EKLEYECEĞİZ CANO 🔥
+
+// 1. Profil Seçme Ekranındaki 404 Hatasını Çözen Rota
+app.put('/api/auth/profile/switch', authMiddleware, async (req, res) => {
+  try {
+    const { profileId } = req.body;
+    req.user.activeProfileId = profileId;
+    await req.user.save();
+    res.json({ message: 'Profil değiştirildi.', user: await getUserPayload(req.user) });
+  } catch (error) { 
+    res.status(500).json({ message: 'Hata.' }); 
+  }
+});
+
+// 2. Keşfet Listelerindeki 400 Hatasını Çözen Rota
+app.get('/api/playlists/all', authMiddleware, async (req, res) => {
+  try {
+    const playlists = await Playlist.findAll({ order: [['createdAt', 'DESC']], limit: 10 }) || [];
+    const enriched = await Promise.all(playlists.map(async (pl) => {
+      const plMovies = await pl.getMovies() || [];
+      return {
+        id: pl.id, _id: pl.id, title: pl.title, description: pl.description,
+        creatorName: 'Kinoia Küratörü', creatorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150',
+        movies: await Promise.all(plMovies.map(m => getMoviePayload(m)))
+      };
+    }));
+    res.json(enriched);
+  } catch (error) { 
+    res.status(500).json([]); 
+  }
+});
 startServer();
