@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await fetch('https://film-platformu-server.vercel.app/api/auth/me', {
+      const response = await fetch('https://film-platformu.onrender.com/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const response = await fetch('https://film-platformu-server.vercel.app/api/auth/login', {
+    const response = await fetch('https://film-platformu.onrender.com/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (email, password, subscriptionStatus, role) => {
-    const response = await fetch('https://film-platformu-server.vercel.app/api/auth/register', {
+    const response = await fetch('https://film-platformu.onrender.com/api/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, subscriptionStatus, role })
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
   const toggleMockRoleAndSubscription = async (role, status) => {
     if (!token) return;
     try {
-      const response = await fetch('https://film-platformu-server.vercel.app/api/auth/update-role', {
+      const response = await fetch('https://film-platformu.onrender.com/api/auth/update-role', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
   const switchProfile = async (profileId) => {
     if (!token) return;
     try {
-      const response = await fetch('https://film-platformu-server.vercel.app/api/auth/profile/switch', {
+      const response = await fetch('https://film-platformu.onrender.com/api/auth/profile/switch', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
