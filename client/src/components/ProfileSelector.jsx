@@ -56,7 +56,12 @@ export default function ProfileSelector({ onProfileSelected }) {
             className="flex flex-col items-center cursor-pointer group"
           >
             <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border-2 border-transparent group-hover:border-purple-500 transition-all duration-300 shadow-lg relative">
-              <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform" />
+              <img 
+  src={profile.avatar} 
+  alt={profile.name} 
+  onError={(e) => { e.target.src = "https://api.dicebear.com/7.x/bottts/svg?seed=" + encodeURIComponent(profile.name); }}
+  className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform" 
+/>
               {String(user.activeProfileId) === String(profile._id || profile.id) && (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <Check className="w-8 h-8 text-purple-400" />
