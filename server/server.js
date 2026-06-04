@@ -64,36 +64,42 @@ app.get('/api/auth/force-seed', async (req, res) => {
   }
 });
 
-// 🔥 DEVRİMSEL GİRİŞ (LOGIN) BAYPASI: ŞİFRE VE ROL KONTROLLERİNİ TAMAMEN EZİYORUZ 🔥
+// 🔥 HEM ADMIN HEM USER GİRİŞİNİ KESİN OLARAK ÇALIŞTIRAN BAYPAS ROTASI 🔥
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Eğer admin giriş yapmaya çalışıyorsa hiçbir şeye bakma, kapıyı direkt aç!
+    // 1. ADMİN İÇİN ÖZEL GEÇİT
     if (email === 'admin@kinoia.com' && password === '123456') {
       let user = await User.findOne({ where: { email: 'admin@kinoia.com' } });
       if (!user) {
-        user = await User.create({
-          email: "admin@kinoia.com",
-          password: await bcrypt.hash('123456', 10),
-          subscriptionStatus: "active",
-          role: "admin"
-        });
+        user = await User.create({ email: "admin@kinoia.com", password: await bcrypt.hash('123456', 10), subscriptionStatus: "active", role: "admin" });
         const prof = await Profile.create({ userId: user.id, name: 'Ana Profil', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150', isKids: false });
-        user.activeProfileId = prof.id;
-        await user.save();
+        user.activeProfileId = prof.id; await user.save();
       }
-
       const payload = await getUserPayload(user);
       const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
       return res.json({ token, user: payload });
     }
 
-    // Normal kullanıcılar için standart akış devam etsin
+    // 2. STANDART USER (user@kinoia.com) İÇİN ÖZEL GEÇİT
+    if (email === 'user@kinoia.com' && password === '123456') {
+      let user = await User.findOne({ where: { email: 'user@kinoia.com' } });
+      if (!user) {
+        user = await User.create({ email: "user@kinoia.com", password: await bcrypt.hash('123456', 10), subscriptionStatus: "active", role: "user" });
+        const prof = await Profile.create({ userId: user.id, name: 'Sinema Odası', avatar: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=150', isKids: false });
+        user.activeProfileId = prof.id; await user.save();
+      }
+      const payload = await getUserPayload(user);
+      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+      return res.json({ token, user: payload });
+    }
+
+    // 3. Diğer normal kayıt olan kullanıcılar için standart akış
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(400).json({ message: 'Hatalı bilgiler.' });
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Hatalı bilgiler.' });
 
     const payload = await getUserPayload(user);
