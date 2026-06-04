@@ -34,10 +34,23 @@ app.use(express.json());
 // CANLI ŞİFRE SIFIRLAMA GARANTİ TETİGİ
 app.get('/api/auth/force-seed', async (req, res) => {
   try {
-    await seedDatabase();
-    res.send("🔥 Sifreler Canlida Basariyla 123456 Yapildi Cano! 🔥");
+    const adminUser = await User.findOne({ where: { email: 'admin@kinoia.com' } });
+    
+    if (adminUser) {
+      adminUser.password = "$2b$10$wNzgbe4fdfLInV8mOnDPh.WpXpZ6Psz7W1M3yFmQzP1/bK.pWfWw2"; 
+      await adminUser.save();
+      res.send("🔥 CANLI SIFRE BASARIYLA 123456 YAPILDI CANO! GIRISE KOS! 🔥");
+    } else {
+      await User.create({
+        email: "admin@kinoia.com",
+        password: "$2b$10$wNzgbe4fdfLInV8mOnDPh.WpXpZ6Psz7W1M3yFmQzP1/bK.pWfWw2",
+        subscriptionStatus: "active",
+        role: "admin"
+      });
+      res.send("🔥 ADMIN YOKTU, SIFIRDAN 123456 SIFRESIYLE OLUSTURULDU! 🔥");
+    }
   } catch (err) {
-    res.status(500).send("Hata: " + err.message);
+    res.status(500).send("Veritabani hatasi: " + err.message);
   }
 });
 
