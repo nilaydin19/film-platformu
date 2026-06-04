@@ -142,27 +142,67 @@ app.get('/api/playlists/all', authMiddleware, async (req, res) => {
 app.get('/api/auth/me', authMiddleware, async (req, res) => { res.json({ user: await getUserPayload(req.user) }); });
 app.get('/api/movies', authMiddleware, async (req, res) => { try { res.json(await Promise.all((await Movie.findAll({ order: [['createdAt', 'DESC']] })).map(m => getMoviePayload(m)))); } catch (e) { res.status(500).json([]); } });
 
-// --- GÜVENLİ DATA METODLARI ---
 const getUserPayload = async (user) => {
   try {
     const profiles = await Profile.findAll({ where: { userId: user.id } }) || [];
+    
+    // 🔥 EĞER VERİTABANINDA PROFİL YOKSA HEMEN BİR TANE OLUŞTURUYORUZ 🔥
+    if (profiles.length === 0) {
+      const defaultProf = await Profile.create({ 
+        userId: user.id, 
+        name: 'Ana Profil', 
+        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Main', 
+        isKids: false 
+      });
+      profiles.push(defaultProf);
+    }
+
+    // Aktif profil ID'si yoksa ilk profili zorunlu olarak aktif yapıyoruz
+    let currentActiveId = user.activeProfileId;
+    if (!currentActiveId && profiles[0]) {
+      currentActiveId = profiles[0].id;
+      user.activeProfileId = currentActiveId;
+      await user.save();
+    }
+
     const profilesWithMetadata = await Promise.all(profiles.map(async (prof) => {
       const watchlistRecords = await Watchlist.findAll({ where: { profileId: prof.id } }) || [];
       const historyRecords = await PlaybackHistory.findAll({ where: { profileId: prof.id } }) || [];
       return {
-        _id: prof.id, id: prof.id, name: prof.name, avatar: prof.avatar, isKids: prof.isKids,
+        _id: prof.id, 
+        id: prof.id, 
+        name: prof.name, 
+        avatar: prof.avatar, 
+        isKids: prof.isKids,
         watchlist: watchlistRecords.map(w => w.movieId),
         playbackHistory: historyRecords.map(h => ({
-          movie: h.movieId, progressSeconds: h.progressSeconds || 0, durationSeconds: h.durationSeconds || 0, lastWatched: h.lastWatched || new Date()
+          movie: h.movieId, 
+          progressSeconds: h.progressSeconds || 0, 
+          durationSeconds: h.durationSeconds || 0, 
+          lastWatched: h.lastWatched || new Date()
         }))
       };
     }));
+
     return {
-      id: user.id, _id: user.id, email: user.email, role: user.role || 'user', subscriptionStatus: user.subscriptionStatus || 'active',
-      profiles: profilesWithMetadata, activeProfileId: user.activeProfileId || (profiles[0] ? profiles[0].id : null)
+      id: user.id, 
+      _id: user.id, 
+      email: user.email, 
+      role: user.role || 'user', 
+      subscriptionStatus: user.subscriptionStatus || 'active',
+      profiles: profilesWithMetadata, 
+      activeProfileId: currentActiveId
     };
   } catch (e) {
-    return { id: user.id, _id: user.id, email: user.email, role: 'user', subscriptionStatus: 'active', profiles: [], activeProfileId: null };
+    return { 
+      id: user.id, 
+      _id: user.id, 
+      email: user.email, 
+      role: 'user', 
+      subscriptionStatus: 'active', 
+      profiles: [], 
+      activeProfileId: null 
+    };
   }
 };
 
