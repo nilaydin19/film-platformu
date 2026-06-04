@@ -66,9 +66,16 @@ export default function App() {
     }, 50);
   };
 
-  // Aktif profil
-  const activeProfile = user?.profiles.find(p => String(p._id || p.id) === String(user.activeProfileId));
-  const isKidsActive = activeProfile?.isKids === true || activeProfile?.isKids === 1 || String(activeProfile?.isKids) === 'true';
+ // 🔥 PROFIL BULMA VE ÇOCUK FİLTRESİNİ KESİNLEŞTİREN GÜVENLİ BLOK 🔥
+  const activeProfile = user?.profiles?.find(p => 
+    String(p._id || p.id) === String(user?.activeProfileId)
+  ) || user?.profiles?.[0]; // Eğer ID eşleşmezse ilk profili baz alarak çökmesini engelliyoruz
+
+  const isKidsActive = activeProfile?.isKids === true || 
+                       activeProfile?.isKids === 1 || 
+                       String(activeProfile?.isKids) === 'true' || 
+                       String(activeProfile?.name).toLowerCase().includes('çocuk') || 
+                       String(activeProfile?.name).toLowerCase().includes('kids');
   
   // Çocuk Profili İçerik Süzgeci
   const allowedContent = isKidsActive
