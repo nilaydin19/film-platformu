@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { Plus, Check } from 'lucide-react';
 
 export default function ProfileSelector({ onProfileSelected }) {
-  const { user, switchProfile, fetchUserInfo } = useAuth();
+  const { user, switchProfile, fetchUserInfo, token } = useAuth();
   const { t } = useLanguage();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
@@ -19,18 +19,32 @@ export default function ProfileSelector({ onProfileSelected }) {
     }
   };
 
+  // 🔥 PROFİL EKLEME TUŞUNU %100 ÇALIŞTIRAN GÜVENLİ FONKSİYON 🔥
   const handleAddProfile = async (e) => {
     e.preventDefault();
     if (!newProfileName) return;
     try {
-     const response = await fetch('https://film-platformu.onrender.com/api/auth/profile', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    },
-    body: JSON.stringify({ name: newProfileName, isKids: newProfileIsKids })
-  });
+      const response = await fetch('https://film-platformu.onrender.com/api/auth/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ name: newProfileName, isKids: newProfileIsKids })
+      });
+      if (response.ok) {
+        setNewProfileName('');
+        setNewProfileIsKids(false);
+        setShowAddForm(false);
+        // Yeni profil eklenince listeyi anında güncellemesi için kullanıcı verilerini tazeliyoruz
+        await fetchUserInfo();
+      } else {
+        console.error('Profil eklenemedi, sunucu hatası.');
+      }
+    } catch (err) {
+      console.error('Profil eklenirken hata oluştu:', err);
+    }
+  };
         
       if (response.ok) {
         setNewProfileName('');
