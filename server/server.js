@@ -121,7 +121,27 @@ app.put('/api/auth/profile/switch', authMiddleware, async (req, res) => {
     res.json({ message: 'Profil değiştirildi.', user: await getUserPayload(req.user) });
   } catch (error) { res.status(500).json({ message: 'Hata.' }); }
 });
-
+// 🔥 FRONTEND'DEKİ 404 HATASINI KÖKTEN ÇÖZEN PROFİL EKLEME KAPISI 🔥
+app.post('/api/auth/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name, isKids } = req.body;
+    
+    // Rastgele bir avatar üretelim (Unsplash patlak olduğu için dicebear ile garantiliyoruz)
+    const randomAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(name)}`;
+    
+    // Yeni profili veritabanına ekliyoruz
+    const newProfile = await Profile.create({
+      userId: req.user.id,
+      name: name,
+      avatar: randomAvatar,
+      isKids: isKids === true || String(isKids) === 'true'
+    });
+    
+    res.json({ message: 'Profil başarıyla oluşturuldu.', profile: newProfile });
+  } catch (error) {
+    res.status(500).json({ message: 'Profil oluşturulurken backend hatası: ' + error.message });
+  }
+});
 // Keşfet Listeleri
 app.get('/api/playlists/all', authMiddleware, async (req, res) => {
   try {
